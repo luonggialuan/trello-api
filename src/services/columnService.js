@@ -1,3 +1,4 @@
+import { boardModel } from '~/models/boardModel'
 import { columnModel } from '~/models/columnModel'
 
 const createNew = async (reqBody) => {
@@ -11,7 +12,13 @@ const createNew = async (reqBody) => {
       createdColumn.insertedId.toString()
     )
 
-    //
+    if (getNewColumn) {
+      // Xử lý cấu trúc data ở đây trước khi trả dữ liệu về
+      getNewColumn.cards = []
+
+      // Cập nhật lại mảng columnOrderIds trong collection boards
+      await boardModel.pushColumnOrderIds(getNewColumn)
+    }
 
     return getNewColumn
   } catch (error) {

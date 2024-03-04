@@ -1,4 +1,5 @@
 import { cardModel } from '~/models/cardModel'
+import { columnModel } from '~/models/columnModel'
 
 const createNew = async (reqBody) => {
   // eslint-disable-next-line no-useless-catch
@@ -11,7 +12,10 @@ const createNew = async (reqBody) => {
       createdCard.insertedId.toString()
     )
 
-    //
+    if (getNewCard) {
+      // Cập nhật lại mảng cardOrderIds trong collection columns
+      await columnModel.pushCardOrderIds(getNewCard)
+    }
 
     return getNewCard
   } catch (error) {
