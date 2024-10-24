@@ -3,6 +3,8 @@ import { boardModel } from '~/models/boardModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
+import { columnModel } from '~/models/columnModel'
+import { cardModel } from '~/models/cardModel'
 
 const createNew = async (reqBody) => {
   // eslint-disable-next-line no-useless-catch
@@ -64,7 +66,7 @@ const getDetails = async (boardId) => {
 const update = async (boardId, reqBody) => {
   // eslint-disable-next-line no-useless-catch
   try {
-    const updateData = { ...reqBody, updateAt: Date.now() }
+    const updateData = { ...reqBody, updatedAt: Date.now() }
 
     const updatedBoard = await boardModel.update(boardId, updateData)
     return updatedBoard
@@ -73,8 +75,35 @@ const update = async (boardId, reqBody) => {
   }
 }
 
+const moveCardInDifferentColumn = async (reqBody) => {
+  // eslint-disable-next-line no-useless-catch
+  try {
+    // * B1: Cập nhật mảng cardOrderIds của Column ban đầu chứa nó
+    await columnModel.update(reqBody.prevColumnId, {
+      cardOrderIds: reqBody.prevCardOrderIds,
+      updatedAt: Date.now()
+    })
+
+    // * B2: Cập nhật mảng cardOrderIds của Column tiếp theo
+    await columnModel.update(reqBody.nextColumnId, {
+      cardOrderIds: reqBody.nextCardOrderIds,
+      updatedAt: Date.now()
+    })
+
+    // * B3: Cập nhật lại trường columnId mới của card đã kéo
+    await cardModel.update(reqBody.currentCardId, {
+      columnId: reqBody.nextColumnId
+    })
+
+    return { updateResult: 'Successfully!' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
   createNew,
   getDetails,
-  update
+  update,
+  moveCardInDifferentColumn
 }
