@@ -1,6 +1,7 @@
 // Những domain được phép truy cập tới tài nguyên của Server
 export const WHITELIST_DOMAINS = [
-  'http://localhost:5173'
+  // Không cần config locahost nữa vì đã config ở file cors.js luôn luôn cho phép môi trường dev
+  // 'http://localhost:5173'
   // ... thêm domain cho phép truy cập tài nguyên
 ]
 
