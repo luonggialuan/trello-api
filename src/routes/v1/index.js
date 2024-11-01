@@ -4,6 +4,7 @@ import { boardRoute } from '~/routes/v1/boardRoute'
 import { columnRoute } from '~/routes/v1/columnRoute'
 import { cardRoute } from '~/routes/v1/cardRoute'
 import { userRoute } from './userRoute'
+import { authMiddleware } from '~/middlewares/authMiddleware'
 
 const Router = express.Router()
 
@@ -13,13 +14,13 @@ Router.get('/status', (req, res) => {
 })
 
 // Boards API
-Router.use('/boards', boardRoute)
+Router.use('/boards', authMiddleware.isAuthorized, boardRoute)
 
 // Columns API
-Router.use('/columns', columnRoute)
+Router.use('/columns', authMiddleware.isAuthorized, columnRoute)
 
 // Cards API
-Router.use('/cards', cardRoute)
+Router.use('/cards', authMiddleware.isAuthorized, cardRoute)
 
 // Users API
 Router.use('/users', userRoute)
