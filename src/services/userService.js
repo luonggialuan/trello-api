@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { pickUser } from '~/utils/formatter'
 import { WEBSITE_DOMAIN } from '~/utils/constants'
 import { BrevoProvider } from '~/providers/BrevoProvider'
+import { env } from '~/config/environment'
+import { JwtProvider } from '~/providers/JwtProvider'
 
 const createNew = async (reqBody) => {
   // eslint-disable-next-line no-useless-catch
@@ -47,4 +49,89 @@ const createNew = async (reqBody) => {
   }
 }
 
-export const userService = { createNew }
+const verifyAccount = async (reqBody) => {
+  // eslint-disable-next-line no-useless-catch
+  try {
+    const existedUser = await userModel.findOneByEmail(reqBody.email)
+
+    if (!existedUser) {
+      throw new ApiError(StatusCodes.CONFLICT, 'Account not found!')
+    }
+
+    if (existedUser.isActive) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'Your account is already active!'
+      )
+    }
+
+    if (reqBody.token !== existedUser.verifyToken) {
+      throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Token is invalid')
+    }
+
+    const updateData = {
+      isActive: true,
+      verifyToken: null
+    }
+
+    const updatedUser = await userModel.update(existedUser._id, updateData)
+
+    return pickUser(updatedUser)
+  } catch (error) {
+    throw error
+  }
+}
+
+const login = async (reqBody) => {
+  // eslint-disable-next-line no-useless-catch
+  try {
+    const existedUser = await userModel.findOneByEmail(reqBody.email)
+
+    if (
+      !existedUser ||
+      !bcryptjs.compareSync(reqBody.password, existedUser.password)
+    ) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'Your Email or Password is not correct!'
+      )
+    }
+
+    if (!existedUser.isActive) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'Your account is not active!'
+      )
+    }
+
+    // * Tạo JWT Token
+    // Thông tin được đính kèm trong JWT Token
+    const userInfo = {
+      _id: existedUser._id,
+      email: existedUser.email
+    }
+
+    // Tạo access and refresh token
+    const accessToken = JwtProvider.generateToken(
+      userInfo,
+      env.ACCESS_TOKEN_SECRET_SIGNATURE,
+      env.ACCESS_TOKEN_LIFE
+    )
+    const refreshToken = JwtProvider.generateToken(
+      userInfo,
+      env.REFRESH_TOKEN_SECRET_SIGNATURE,
+      env.REFRESH_TOKEN_LIFE
+    )
+
+    // Trả thông tin user kèm 2 tokens
+    return { accessToken, refreshToken, ...pickUser(existedUser) }
+  } catch (error) {
+    throw error
+  }
+}
+
+export const userService = {
+  createNew,
+  verifyAccount,
+  login
+}
