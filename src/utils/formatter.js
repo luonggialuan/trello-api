@@ -22,6 +22,7 @@ export const pickUser = (user) => {
     '_id',
     'email',
     'displayName',
+    'username',
     'avatar',
     'role',
     'isActive',
