@@ -8,6 +8,7 @@ import { WEBSITE_DOMAIN } from '~/utils/constants'
 import { BrevoProvider } from '~/providers/BrevoProvider'
 import { env } from '~/config/environment'
 import { JwtProvider } from '~/providers/JwtProvider'
+import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
 const createNew = async (reqBody) => {
   // eslint-disable-next-line no-useless-catch
@@ -155,7 +156,7 @@ const refreshToken = async (clientRefreshToken) => {
   }
 }
 
-const update = async (userId, reqBody) => {
+const update = async (userId, reqBody, userAvatarFile) => {
   // eslint-disable-next-line no-useless-catch
   try {
     const existedUser = await userModel.findOneById(userId)
@@ -180,6 +181,17 @@ const update = async (userId, reqBody) => {
 
       updatedUser = await userModel.update(userId, {
         password: bcryptjs.hashSync(reqBody.new_password, 8)
+      })
+    } else if (userAvatarFile) {
+      // Upload file lên Cloud Storage (Cloudinary)
+      const uploadResult = await CloudinaryProvider.streamUpload(
+        userAvatarFile.buffer,
+        'users'
+      )
+
+      // Lưu lại url avatar bào DB
+      updatedUser = await userModel.update(userId, {
+        avatar: uploadResult.secure_url
       })
     } else {
       updatedUser = await userModel.update(userId, reqBody)
