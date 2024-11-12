@@ -30,7 +30,7 @@ const update = async (req, res, next) => {
   // Không required() trong trường hợp update
   const correctCondition = Joi.object({
     title: Joi.string().min(3).max(50).trim().strict(),
-    description: Joi.string().optional()
+    description: Joi.string().allow('').optional()
   })
 
   try {
