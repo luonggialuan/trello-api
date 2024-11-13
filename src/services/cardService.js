@@ -24,7 +24,7 @@ const createNew = async (reqBody) => {
   }
 }
 
-const update = async (cardId, reqBody, cardCoverFile) => {
+const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
   // eslint-disable-next-line no-useless-catch
   try {
     const updateData = { ...reqBody, updatedAt: Date.now() }
@@ -40,6 +40,15 @@ const update = async (cardId, reqBody, cardCoverFile) => {
       updatedCard = await cardModel.update(cardId, {
         cover: uploadResult.secure_url
       })
+    } else if (updateData.commentToAdd) {
+      const commentData = {
+        ...updateData.commentToAdd,
+        commentedAt: Date.now(),
+        userId: userInfo._id,
+        userEmail: userInfo.email
+      }
+
+      updatedCard = await cardModel.unshiftNewComment(cardId, commentData)
     } else {
       // Các trường hợp update chung như title, description
       updatedCard = await cardModel.update(cardId, updateData)
