@@ -9,4 +9,7 @@ Router.route('/board').post(
   invitationController.createNewBoardInvitation
 )
 
+// Get invitations by User
+Router.route('/').get(invitationController.getInvitations)
+
 export const invitationRoute = Router
