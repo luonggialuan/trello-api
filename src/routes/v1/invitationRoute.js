@@ -12,4 +12,8 @@ Router.route('/board').post(
 // Get invitations by User
 Router.route('/').get(invitationController.getInvitations)
 
+Router.route('/board/:invitationId').put(
+  invitationController.updateBoardInvitation
+)
+
 export const invitationRoute = Router
