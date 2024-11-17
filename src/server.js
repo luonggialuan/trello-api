@@ -7,6 +7,9 @@ import { APIs_V1 } from '~/routes/v1'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware'
 import { corsOptions } from './config/cors'
 import cookieParser from 'cookie-parser'
+import http from 'http'
+import socketIo from 'socket.io'
+import { inviteUserToBoardSocket } from './sockets/inviteUserToBoardSocket'
 
 const START_SERVER = () => {
   const app = express()
@@ -32,15 +35,24 @@ const START_SERVER = () => {
   // Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
 
+  // Tạo server mới bọc app của express để tạo real-time với socket.io
+  const server = http.createServer(app)
+  // Khởi tạo biến io với server và cors
+  const io = socketIo(server, { cors: corsOptions })
+  io.on('connection', (socket) => {
+    inviteUserToBoardSocket(socket)
+    // Thêm các socket khác ở đây...
+  })
+
   if (env.BUILD_MODE === 'production') {
-    app.listen(process.env.PORT || 4000, () => {
+    server.listen(process.env.PORT || 4000, () => {
       //   eslint-disable-next-line no-console
       console.log(
         `3. Hello ${env.AUTHOR}! I am running at Port: ${process.env.PORT}/`
       )
     })
   } else {
-    app.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
+    server.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
       //   eslint-disable-next-line no-console
       console.log(
         `3. Hello ${env.AUTHOR}! I am running at http://${env.LOCAL_DEV_APP_HOST}:${env.LOCAL_DEV_APP_PORT}/`
