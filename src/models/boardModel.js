@@ -198,7 +198,7 @@ const update = async (boardId, updateData) => {
   }
 }
 
-const getBoards = async (userId, page, itemsPerPage) => {
+const getBoards = async (userId, page, itemsPerPage, queryFilters) => {
   try {
     const queryConditions = [
       // Điều kiện 1: Boards chưa bị xóa
@@ -212,6 +212,27 @@ const getBoards = async (userId, page, itemsPerPage) => {
         ]
       }
     ]
+
+    // Xử lý queryFilters
+    if (queryFilters) {
+      // console.log(
+      //   '🐾 ~ file: boardModel.js:218 ~ getBoards ~ queryFilters:',
+      //   queryFilters
+      // )
+      // console.log(Object.keys(queryFilters))
+      Object.keys(queryFilters).forEach((key) => {
+        // Có phân biệt chữ hoa chữ thường
+        // queryConditions.push({ [key]: { $regex: queryFilters[key] } })
+        // Không phân biệt chữ hoa chữ thường
+        queryConditions.push({
+          [key]: { $regex: new RegExp(queryFilters[key], 'i') }
+        })
+      })
+    }
+    // console.log(
+    //   '🐾 ~ file: boardModel.js:226 ~ Object.keys ~ queryConditions:',
+    //   queryConditions
+    // )
 
     const query = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
