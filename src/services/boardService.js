@@ -102,7 +102,7 @@ const moveCardInDifferentColumn = async (reqBody) => {
   }
 }
 
-const getBoards = async (userId, page, itemsPerPage) => {
+const getBoards = async (userId, page, itemsPerPage, queryFilters) => {
   // eslint-disable-next-line no-useless-catch
   try {
     if (!page || page <= 0) page = DEFAULT_PAGE
@@ -112,7 +112,8 @@ const getBoards = async (userId, page, itemsPerPage) => {
     const results = await boardModel.getBoards(
       userId,
       parseInt(page, 10),
-      parseInt(itemsPerPage, 10)
+      parseInt(itemsPerPage, 10),
+      queryFilters
     )
 
     return results
